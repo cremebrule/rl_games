@@ -11,7 +11,7 @@ class ConnectFourSelfPlay(gym.Env):
     def __init__(self, name="connect_four_v0",  **kwargs):
         gym.Env.__init__(self)
         self.name = name
-        self.is_determenistic = kwargs.pop('is_determenistic', False)
+        self.is_deterministic = kwargs.pop('is_deterministic', False)
         self.is_human = kwargs.pop('is_human', False)
         self.random_agent = kwargs.pop('random_agent', False)
         self.config_path = kwargs.pop('config_path')
@@ -47,7 +47,7 @@ class ConnectFourSelfPlay(gym.Env):
     def reset(self):
         if self.agent == None:
             self.create_agent(self.config_path)
-        
+
         self.agent_id = np.random.randint(2)
         obs = self.env.reset()
         self.obs_deque.append(obs)
@@ -63,11 +63,11 @@ class ConnectFourSelfPlay(gym.Env):
                 if self.random_agent:
                     opponent_action = np.random.choice(ids, 1)[0]
                 else:
-                    opponent_action = self.agent.get_masked_action(op_obs, mask, self.is_determenistic).item()
-                    
+                    opponent_action = self.agent.get_masked_action(op_obs, mask, self.is_deterministic).item()
+
 
             obs, _, _, _ = self.env_step(opponent_action)
-            
+
             self.obs_deque.append(obs)
         return self.get_obs()
 
@@ -80,13 +80,13 @@ class ConnectFourSelfPlay(gym.Env):
         #'RAYLIB has bug here, CUDA_VISIBLE_DEVICES become unset'
         if 'CUDA_VISIBLE_DEVICES' in os.environ:
             os.environ.pop('CUDA_VISIBLE_DEVICES')
-        
+
         self.agent = runner.create_player()
         self.agent.model.eval()
 
 
     def step(self, action):
-        
+
         obs, reward, done, info = self.env_step(action)
         self.obs_deque.append(obs)
 
@@ -98,7 +98,7 @@ class ConnectFourSelfPlay(gym.Env):
             return self.get_obs(), reward, done, info
 
         op_obs = self.get_obs()
-       
+
         op_obs = self.agent.obs_to_torch(op_obs)
         mask, ids = self._get_legal_moves(1-self.agent_id)
         if self.is_human:
@@ -108,13 +108,13 @@ class ConnectFourSelfPlay(gym.Env):
             if self.random_agent:
                 opponent_action = np.random.choice(ids, 1)[0]
             else:
-                opponent_action = self.agent.get_masked_action(op_obs, mask, self.is_determenistic).item()
+                opponent_action = self.agent.get_masked_action(op_obs, mask, self.is_deterministic).item()
         obs, reward, done,_ = self.env_step(opponent_action)
         if done:
             if reward == -1:
                 info['battle_won'] = 0
             else:
-                info['battle_won'] = 1                 
+                info['battle_won'] = 1
         self.obs_deque.append(obs)
         return self.get_obs(), reward, done, info
 
@@ -127,6 +127,6 @@ class ConnectFourSelfPlay(gym.Env):
     def get_action_mask(self):
         mask, _ = self._get_legal_moves(self.agent_id)
         return mask
-    
+
     def has_action_mask(self):
         return True

@@ -28,7 +28,7 @@ class BasePlayer(object):
         self.device_name = self.player_config.get('device_name', 'cuda')
         self.render_env = self.player_config.get('render', False)
         self.games_num = self.player_config.get('games_num', 2000)
-        self.is_determenistic = self.player_config.get('determenistic', True)
+        self.is_deterministic = self.player_config.get('deterministic', True)
         self.n_game_life = self.player_config.get('n_game_life', 1)
         self.print_stats = self.player_config.get('print_stats', True)
         self.render_sleep = self.player_config.get('render_sleep', 0.002)
@@ -98,11 +98,11 @@ class BasePlayer(object):
     def create_env(self):
         return env_configurations.configurations[self.env_name]['env_creator'](**self.env_config)
 
-    def get_action(self, obs, is_determenistic = False):
+    def get_action(self, obs, is_deterministic = False):
         raise NotImplementedError('step')
-    
-    def get_masked_action(self, obs, mask, is_determenistic = False):
-        raise NotImplementedError('step') 
+
+    def get_masked_action(self, obs, mask, is_deterministic = False):
+        raise NotImplementedError('step')
 
     def reset(self):
         raise NotImplementedError('raise')
@@ -116,7 +116,7 @@ class BasePlayer(object):
         n_games = self.games_num
         render = self.render_env
         n_game_life = self.n_game_life
-        is_determenistic = self.is_determenistic
+        is_deterministic = self.is_deterministic
         sum_rewards = 0
         sum_steps = 0
         sum_game_res = 0
@@ -158,13 +158,13 @@ class BasePlayer(object):
             for n in range(self.max_steps):
                 if has_masks:
                     masks = self.env.get_action_mask()
-                    action = self.get_masked_action(obses, masks, is_determenistic)
+                    action = self.get_masked_action(obses, masks, is_deterministic)
                 else:
-                    action = self.get_action(obses, is_determenistic)
+                    action = self.get_action(obses, is_deterministic)
                 obses, r, done, info =  self.env_step(self.env, action)
                 cr += r
                 steps += 1
-  
+
                 if render:
                     self.env.render(mode = 'human')
                     time.sleep(self.render_sleep)
