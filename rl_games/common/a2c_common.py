@@ -8,6 +8,8 @@ from rl_games.common import schedulers
 import numpy as np
 import collections
 import time
+from pathlib import Path
+
 from collections import deque, OrderedDict
 import gym
 
@@ -133,7 +135,11 @@ class A2CBase:
         self.epoch_num = 0
 
         self.entropy_coef = self.config['entropy_coef']
-        self.writer = SummaryWriter('runs/' + config['name'] + datetime.now().strftime("_%d-%H-%M-%S"))
+        self.logdir = self.config.get('logdir', '.')
+        # Create log dir if it doesn't exist
+        Path(self.logdir).mkdir(parents=True, exist_ok=True)
+        # Create tensorboard writer
+        self.writer = SummaryWriter(f'{self.logdir}/runs/' + config['name'] + datetime.now().strftime("_%d-%H-%M-%S"))
 
         if self.normalize_value:
             self.value_mean_std = RunningMeanStd((1,)).to(self.ppo_device)
@@ -852,19 +858,19 @@ class DiscreteA2CBase(A2CBase):
 
                     if self.save_freq > 0:
                         if (epoch_num % self.save_freq == 0) and (mean_rewards <= self.last_mean_rewards):
-                            self.save("./nn/" + 'last_' + self.config['name'] + 'ep=' + str(epoch_num) + 'rew=' + str(mean_rewards))
+                            self.save(f"{self.logdir}/nn/" + 'last_' + self.config['name'] + 'ep=' + str(epoch_num) + 'rew=' + str(mean_rewards))
 
                     if mean_rewards[0] > self.last_mean_rewards and epoch_num >= self.save_best_after:
                         print('saving next best rewards: ', mean_rewards)
                         self.last_mean_rewards = mean_rewards[0]
-                        self.save("./nn/" + self.config['name'])
+                        self.save(f"{self.logdir}/nn/" + self.config['name'])
                         if self.last_mean_rewards > self.config['score_to_win']:
                             print('Network won!')
-                            self.save("./nn/" + self.config['name'] + 'ep=' + str(epoch_num) + 'rew=' + str(mean_rewards))
+                            self.save(f"{self.logdir}/nn/" + self.config['name'] + 'ep=' + str(epoch_num) + 'rew=' + str(mean_rewards))
                             return self.last_mean_rewards, epoch_num
 
                 if epoch_num > self.max_epochs:
-                    self.save("./nn/" + 'last_' + self.config['name'] + 'ep=' + str(epoch_num) + 'rew=' + str(mean_rewards))
+                    self.save(f"{self.logdir}/nn/" + 'last_' + self.config['name'] + 'ep=' + str(epoch_num) + 'rew=' + str(mean_rewards))
                     print('MAX EPOCHS NUM!')
                     return self.last_mean_rewards, epoch_num
                 update_time = 0
