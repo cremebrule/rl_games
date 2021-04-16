@@ -139,7 +139,7 @@ class A2CBase:
         # Create log dir if it doesn't exist
         Path(self.logdir).mkdir(parents=True, exist_ok=True)
         # Create tensorboard writer
-        self.writer = SummaryWriter(f'{self.logdir}/runs/' + config['name'] + datetime.now().strftime("_%d-%H-%M-%S"))
+        self.writer = SummaryWriter(f'{self.logdir}/runs/' + config['name'] + datetime.now().strftime("_%Y_%m_%d-%H-%M-%S"))
 
         if self.normalize_value:
             self.value_mean_std = RunningMeanStd((1,)).to(self.ppo_device)
