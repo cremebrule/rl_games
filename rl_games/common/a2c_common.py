@@ -8,6 +8,7 @@ from rl_games.common import schedulers
 import numpy as np
 import collections
 import time
+import os
 from pathlib import Path
 
 from collections import deque, OrderedDict
@@ -137,9 +138,13 @@ class A2CBase:
         self.entropy_coef = self.config['entropy_coef']
         self.logdir = self.config.get('logdir', '.')
         # Create log dir if it doesn't exist
-        Path(self.logdir).mkdir(parents=True, exist_ok=True)
+        task_name = config["name"].split("_")[0]
+        nn_logdir = os.path.join(self.logdir, task_name, "nn")
+        runs_logdir = os.path.join(self.logdir, task_name, "runs")
+        Path(nn_logdir).mkdir(parents=True, exist_ok=True)
+        Path(runs_logdir).mkdir(parents=True, exist_ok=True)
         # Create tensorboard writer
-        self.writer = SummaryWriter(f'{self.logdir}/runs/' + config['name'] + datetime.now().strftime("_%Y_%m_%d-%H-%M-%S"))
+        self.writer = SummaryWriter(f'{self.logdir}/{task_name}/runs/' + config['name'] + datetime.now().strftime("_%Y_%m_%d-%H-%M-%S"))
 
         if self.normalize_value:
             self.value_mean_std = RunningMeanStd((1,)).to(self.ppo_device)
