@@ -421,14 +421,15 @@ class A2CBase:
             state['assymetric_vf_nets'] = self.central_value_net.state_dict()
         return state
 
-    def set_full_state_weights(self, weights):
+    def set_full_state_weights(self, weights, load_optimizer_state=False):
         self.set_weights(weights)
         self.epoch_num = weights['epoch']
         if self.mixed_precision and 'scaler' in weights:
             self.scaler.load_state_dict(weights['scaler'])
         if self.has_central_value:
             self.central_value_net.load_state_dict(weights['assymetric_vf_nets'])
-        self.optimizer.load_state_dict(weights['optimizer'])
+        if load_optimizer_state:
+            self.optimizer.load_state_dict(weights['optimizer'])
 
     def get_weights(self):
         state = {'model': self.model.state_dict()}

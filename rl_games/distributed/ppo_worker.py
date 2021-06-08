@@ -27,7 +27,7 @@ class PPOWorker:
             b_loss = 0
         else:
             a_loss, c_loss, entropy, kl_dist, _, _, mu, sigma, b_loss = stats
-        
+
         self.current_result['a_loss'] += a_loss
         self.current_result['c_loss'] += c_loss
         self.current_result['entropy'] += entropy
@@ -37,7 +37,7 @@ class PPOWorker:
         self.current_result['b_loss'] += b_loss
 
     def set_model_weights(self, weights):
-        self.agent.set_full_state_weights(weights)
+        self.agent.set_full_state_weights(weights, load_optimizer_state=self.runner.load_optimizer_state)
 
     def calc_ppo_gradients(self, batch_idx):
         self.agent.train_actor_critic(self.agent.dataset[batch_idx], opt_step=False)
@@ -55,7 +55,7 @@ class PPOWorker:
         mean_scores = torch_ext.get_mean(self.agent.game_scores)
 
         self.current_result = {k: v/self.runs_per_epoch for k, v in self.current_result.items()}
-    
+
         for k, v in self.current_result.items():
             if k not in ['assymetric_value_loss']:
                 self.current_result[k] = v / self.runs_per_epoch

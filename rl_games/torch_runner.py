@@ -64,6 +64,7 @@ class Runner:
         self.algo_params = params['algo']
         self.algo_name = self.algo_params['name']
         self.load_check_point = params['load_checkpoint']
+        self.load_optimizer_state = params['load_optimizer_state']
         self.exp_config = None
 
         if self.seed:

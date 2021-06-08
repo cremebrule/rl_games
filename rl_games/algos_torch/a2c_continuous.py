@@ -7,7 +7,7 @@ from rl_games.common import common_losses
 from rl_games.common import datasets
 
 from torch import optim
-import torch 
+import torch
 from torch import nn
 import numpy as np
 
@@ -37,16 +37,16 @@ class A2CAgent(a2c_common.ContinuousA2CBase):
 
         if self.has_central_value:
             cv_config = {
-                'state_shape' : torch_ext.shape_whc_to_cwh(self.state_shape), 
+                'state_shape' : torch_ext.shape_whc_to_cwh(self.state_shape),
                 'value_size' : self.value_size,
-                'ppo_device' : self.ppo_device, 
-                'num_agents' : self.num_agents, 
-                'num_steps' : self.steps_num, 
-                'num_actors' : self.num_actors, 
-                'num_actions' : self.actions_num, 
-                'seq_len' : self.seq_len, 
+                'ppo_device' : self.ppo_device,
+                'num_agents' : self.num_agents,
+                'num_steps' : self.steps_num,
+                'num_actors' : self.num_actors,
+                'num_actions' : self.actions_num,
+                'seq_len' : self.seq_len,
                 'model' : self.central_value_config['network'],
-                'config' : self.central_value_config, 
+                'config' : self.central_value_config,
                 'writter' : self.writer
             }
             self.central_value_net = central_value.CentralValueTrain(**cv_config).to(self.ppo_device)
@@ -57,14 +57,14 @@ class A2CAgent(a2c_common.ContinuousA2CBase):
     def update_epoch(self):
         self.epoch_num += 1
         return self.epoch_num
-        
+
     def save(self, fn):
         state = self.get_full_state_weights()
         torch_ext.save_scheckpoint(fn, state)
 
-    def restore(self, fn):
+    def restore(self, fn, load_optimzer_state=False):
         checkpoint = torch_ext.load_checkpoint(fn)
-        self.set_full_state_weights(checkpoint)
+        self.set_full_state_weights(checkpoint, load_optimizer_state=load_optimzer_state)
 
     def get_masked_action_values(self, obs, action_masks):
         assert False
@@ -88,7 +88,7 @@ class A2CAgent(a2c_common.ContinuousA2CBase):
 
         batch_dict = {
             'is_train': True,
-            'prev_actions': actions_batch, 
+            'prev_actions': actions_batch,
             'obs' : obs_batch,
         }
 
@@ -97,7 +97,7 @@ class A2CAgent(a2c_common.ContinuousA2CBase):
             rnn_masks = input_dict['rnn_masks']
             batch_dict['rnn_states'] = input_dict['rnn_states']
             batch_dict['seq_length'] = self.seq_len
-            
+
         with torch.cuda.amp.autocast(enabled=self.mixed_precision):
             res_dict = self.model(batch_dict)
             action_log_probs = res_dict['prev_neglogp']
@@ -138,7 +138,7 @@ class A2CAgent(a2c_common.ContinuousA2CBase):
             if self.is_rnn:
                 kl_dist = (kl_dist * rnn_masks).sum() / sum_mask
             kl_dist = kl_dist.item()
-                    
+
         self.train_result = (a_loss.item(), c_loss.item(), entropy.item(), \
             kl_dist, self.last_lr, lr_mul, \
             mu.detach(), sigma.detach(), b_loss.item())
