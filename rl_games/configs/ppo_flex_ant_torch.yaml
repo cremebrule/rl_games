@@ -1,4 +1,4 @@
-params:  
+params:
   algo:
     name: a2c_continuous
 
@@ -21,7 +21,7 @@ params:
         #  name: normc_initializer
         #  std: 0.01
         sigma_init:
-          name: const_initializer     
+          name: const_initializer
           #  value: 0 # tf
           val: 0 # pytorch
 
@@ -71,3 +71,4 @@ params:
     normalize_input : True
     normalize_value : True
     bounds_loss_coef: 0.0001
+      mixed_precision: True

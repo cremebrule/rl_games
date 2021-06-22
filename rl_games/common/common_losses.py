@@ -1,7 +1,9 @@
 from torch import nn
 import torch
 
+@torch.jit.script
 def critic_loss(value_preds_batch, values, curr_e_clip, return_batch, clip_value):
+# type: (Tensor, Tensor, float, Tensor, bool) -> Tensor
     if clip_value:
         value_pred_clipped = value_preds_batch + \
                 (values - value_preds_batch).clamp(-curr_e_clip, curr_e_clip)
@@ -14,7 +16,9 @@ def critic_loss(value_preds_batch, values, curr_e_clip, return_batch, clip_value
     return c_loss
 
 
+@torch.jit.script
 def actor_loss(old_action_log_probs_batch, action_log_probs, advantage, is_ppo, curr_e_clip):
+# type: (Tensor, Tensor, Tensor, bool, float) -> Tensor
     if is_ppo:
         ratio = torch.exp(old_action_log_probs_batch - action_log_probs)
         surr1 = advantage * ratio
@@ -23,5 +27,5 @@ def actor_loss(old_action_log_probs_batch, action_log_probs, advantage, is_ppo, 
         a_loss = torch.max(-surr1, -surr2)
     else:
         a_loss = (action_log_probs * advantage)
-    
+
     return a_loss
