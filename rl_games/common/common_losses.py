@@ -16,7 +16,8 @@ def critic_loss(value_preds_batch, values, curr_e_clip, return_batch, clip_value
     return c_loss
 
 
-@torch.jit.script
+# @torch.jit.script
+# TODO: Torch script breaks training for some reason ):
 def actor_loss(old_action_log_probs_batch, action_log_probs, advantage, is_ppo, curr_e_clip):
 # type: (Tensor, Tensor, Tensor, bool, float) -> Tensor
     if is_ppo:
