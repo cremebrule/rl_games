@@ -8,14 +8,13 @@ params:
 
   network:
     name: actor_critic
-    separate: True
+    separate: False
     space:
       continuous:
         mu_activation: None
         sigma_activation: None
         mu_init:
           name: default
-          scale: 0.02 
         sigma_init:
           name: const_initializer
           val: 0
@@ -27,14 +26,6 @@ params:
       initializer:
         name: default
         scale: 2         
-      regularizer:
-        name:  'None' #'l2_regularizer'
-        #scale: 0.001
-    rnn:
-      name: identity
-      units: 64
-      layers: 1
-      before_mlp: False
       
   load_checkpoint: False
   load_path: './nn/last_walkerep=10001rew=108.35405.pth'
@@ -59,20 +50,18 @@ params:
       clip_value: False
       num_actors: 16
       steps_num: 256
-      minibatch_size: 1024
+      minibatch_size: 256
       mini_epochs: 4
-      critic_coef: 4
+      critic_coef: 2
       schedule_type: 'standard'
       lr_schedule: adaptive
-      lr_threshold: 0.008
-      normalize_input: False
-      seq_length: 4
+      lr_threshold: 0.005
+      normalize_input: True
       bounds_loss_coef: 0.00
       max_epochs: 10000
       normalize_value: True
       #weight_decay: 0.0001
-
       player:
-        render: False
+        render: True
         determenistic: True
         games_num: 200

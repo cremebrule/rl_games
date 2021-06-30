@@ -5,10 +5,9 @@ from collections import deque
 
 import gym
 from gym import spaces
-import cv2
 from copy import copy
 
-cv2.ocl.setUseOpenCL(False)
+
 
 class LimitStepsWrapper(gym.Wrapper):
     def __init__(self, env, limit=200):
@@ -217,6 +216,7 @@ class WarpFrame(gym.ObservationWrapper):
                 shape=(self.height, self.width, 3), dtype=np.uint8)
 
     def observation(self, frame):
+        import cv2
         if self.grayscale:
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
         frame = cv2.resize(frame, (self.width, self.height), interpolation=cv2.INTER_AREA)
@@ -238,8 +238,6 @@ class FrameStack(gym.Wrapper):
         self.flat = flat
         self.frames = deque([], maxlen=k)
         observation_space = env.observation_space
-        if isinstance(observation_space, gym.spaces.dict.Dict):
-            observation_space = observation_space['observations']
         self.shp = shp = observation_space.shape
         #TODO: remove consts -1 and 1
         if flat:
@@ -395,6 +393,7 @@ class ProcgenStack(gym.Wrapper):
         self.observation_space = spaces.Box(low=0, high=255, shape=shape, dtype=np.uint8)
 
     def reset(self):
+        import cv2
         frames = self.env.reset()
         self.frames.append(frames)
 
@@ -409,6 +408,7 @@ class ProcgenStack(gym.Wrapper):
         return self._get_ob()
 
     def step(self, action):
+        import cv2
         frames, reward, done, info = self.env.step(action)
 
         if self.greyscale:
