@@ -1,4 +1,4 @@
-params:  
+params:
   seed: 322
   algo:
     name: a2c_discrete
@@ -12,7 +12,7 @@ params:
   network:
     name: actor_critic
     separate: False
-    space: 
+    space:
       discrete:
 
     cnn:
@@ -23,7 +23,7 @@ params:
         gain: 1
       regularizer:
         name: 'None'
-      convs:    
+      convs:
         - filters: 32
           kernel_size: 8
           strides: 4
@@ -36,7 +36,7 @@ params:
           kernel_size: 3
           strides: 1
           padding: 0
-      
+
     mlp:
       units: [512]
       activation: elu
@@ -68,7 +68,7 @@ params:
     lr_schedule:  none
     #lr_threshold: 0.008
     #schedule_entropy : True
-    normalize_value: False 
+    normalize_value: False
     normalize_input: False
     max_epochs: 1500
     phasic_policy_gradients:
@@ -81,4 +81,4 @@ params:
       render: True
       games_num: 100
       n_game_life: 1
-      is_determenistic: True
+      is_deterministic: True

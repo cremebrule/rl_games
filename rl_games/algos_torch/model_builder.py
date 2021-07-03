@@ -5,14 +5,21 @@ from rl_games.algos_torch import models
 
 
 NETWORK_REGISTRY = {}
+MODEL_REGISTRY = {}
 
 def register_network(name, target_class):
     NETWORK_REGISTRY[name] = lambda **kwargs : target_class()
+
+
+def register_model(name, target_class):
+    MODEL_REGISTRY[name] = lambda network, **kwargs : target_class(network)
+
 
 class ModelBuilder:
     def __init__(self):
 
         self.model_factory = object_factory.ObjectFactory()
+        self.model_factory.set_builders(MODEL_REGISTRY)
         self.model_factory.register_builder('discrete_a2c', lambda network, **kwargs : models.ModelA2C(network))
         self.model_factory.register_builder('multi_discrete_a2c', lambda network, **kwargs : models.ModelA2CMultiDiscrete(network))
         self.model_factory.register_builder('continuous_a2c', lambda network, **kwargs : models.ModelA2CContinuous(network))

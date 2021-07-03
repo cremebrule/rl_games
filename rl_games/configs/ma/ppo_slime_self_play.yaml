@@ -1,4 +1,4 @@
-params:  
+params:
   algo:
     name: a2c_discrete
 
@@ -12,14 +12,14 @@ params:
     name: actor_critic
     separate: True
     #normalization: layer_norm
-    space: 
+    space:
       discrete:
 
     mlp:
       units: [128,64]
       activation: elu
       initializer:
-        name: default 
+        name: default
       regularizer:
         name:  'None'
   config:
@@ -63,5 +63,5 @@ params:
       render: True
       games_num: 200
       n_game_life: 1
-      is_determenistic: True
+      is_deterministic: True
       device_name: 'cpu'

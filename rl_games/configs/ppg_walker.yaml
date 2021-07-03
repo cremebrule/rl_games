@@ -1,4 +1,4 @@
-params:  
+params:
   seed: 8
   algo:
     name: a2c_continuous
@@ -25,8 +25,8 @@ params:
       activation: relu
       initializer:
         name: default
-        scale: 2         
-      
+        scale: 2
+
   load_checkpoint: False
   load_path: './nn/last_walkerep=10001rew=108.35405.pth'
 
@@ -67,5 +67,5 @@ params:
         mini_epochs: 6
       player:
         render: True
-        determenistic: True
+        deterministic: True
         games_num: 200
