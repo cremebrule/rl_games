@@ -1,4 +1,4 @@
-params:  
+params:
   seed: 8
   algo:
     name: a2c_continuous
@@ -24,8 +24,8 @@ params:
       d2rl: False
       activation: relu
       initializer:
-        name: default       
-      
+        name: default
+
   load_checkpoint: True
   load_path: './nn/walker_hc_ppg.pth'
 
@@ -66,5 +66,5 @@ params:
         mini_epochs: 6
       player:
         render: True
-        determenistic: True
+        deterministic: True
         games_num: 200

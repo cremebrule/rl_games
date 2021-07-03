@@ -17,17 +17,30 @@ from rl_games.algos_torch import players
 from rl_games.common.algo_observer import DefaultAlgoObserver
 #from rl_games.common.transforms.soft_augmentation import SoftAugmentation
 
+AGENT_REGISTRY = {}
+PLAYER_REGISTRY = {}
+
+
+def register_agent(name, target_class):
+    AGENT_REGISTRY[name] = lambda **kwargs : target_class(**kwargs)
+
+
+def register_player(name, target_class):
+    PLAYER_REGISTRY[name] = lambda **kwargs : target_class(**kwargs)
+
 
 class Runner:
     def __init__(self, algo_observer=None):
         self.algo_factory = object_factory.ObjectFactory()
+        self.algo_factory.set_builders(AGENT_REGISTRY)
         self.algo_factory.register_builder('a2c_continuous', lambda **kwargs : a2c_continuous.A2CAgent(**kwargs))
-        self.algo_factory.register_builder('a2c_discrete', lambda **kwargs : a2c_discrete.DiscreteA2CAgent(**kwargs)) 
+        self.algo_factory.register_builder('a2c_discrete', lambda **kwargs : a2c_discrete.DiscreteA2CAgent(**kwargs))
         #self.algo_factory.register_builder('dqn', lambda **kwargs : dqnagent.DQNAgent(**kwargs))
 
         self.player_factory = object_factory.ObjectFactory()
+        self.player_factory.set_builders(PLAYER_REGISTRY)
         self.player_factory.register_builder('a2c_continuous', lambda **kwargs : players.PpoPlayerContinuous(**kwargs))
-        self.player_factory.register_builder('a2c_discrete', lambda **kwargs : players.PpoPlayerDiscrete(**kwargs)) 
+        self.player_factory.register_builder('a2c_discrete', lambda **kwargs : players.PpoPlayerDiscrete(**kwargs))
         #self.player_factory.register_builder('dqn', lambda **kwargs : players.DQNPlayer(**kwargs))
 
         self.model_builder = model_builder.ModelBuilder()
@@ -46,6 +59,7 @@ class Runner:
         self.algo_params = params['algo']
         self.algo_name = self.algo_params['name']
         self.load_check_point = params['load_checkpoint']
+        self.load_optimizer_state = params['load_optimizer_state']
         self.exp_config = None
 
         if self.seed:
@@ -58,17 +72,17 @@ class Runner:
 
         self.model = self.model_builder.load(params)
         self.config = copy.deepcopy(params['config'])
-        
+
         self.config['reward_shaper'] = tr_helpers.DefaultRewardsShaper(**self.config['reward_shaper'])
         self.config['network'] = self.model
-        
+
         has_rnd_net = self.config.get('rnd_config', None) != None
         if has_rnd_net:
             print('Adding RND Network')
             network = self.model_builder.network_factory.create(params['config']['rnd_config']['network']['name'])
             network.load(params['config']['rnd_config']['network'])
             self.config['rnd_config']['network'] = network
-        
+
         has_central_value_net = self.config.get('central_value_config', None) != None
         if has_central_value_net:
             print('Adding Central Value Network')
@@ -105,7 +119,7 @@ class Runner:
                 self.config['features']['observer'] = self.algo_observer
                 #if 'soft_augmentation' in self.config['features']:
                 #    self.config['features']['soft_augmentation'] = SoftAugmentation(**self.config['features']['soft_augmentation'])
-                agent = self.algo_factory.create(self.algo_name, base_name='run', config=self.config)  
+                agent = self.algo_factory.create(self.algo_name, base_name='run', config=self.config)
                 self.experiment.set_results(*agent.train())
                 exp = self.experiment.get_next_config()
         else:
@@ -116,11 +130,11 @@ class Runner:
             self.config['features']['observer'] = self.algo_observer
             #if 'soft_augmentation' in self.config['features']:
             #    self.config['features']['soft_augmentation'] = SoftAugmentation(**self.config['features']['soft_augmentation'])
-            agent = self.algo_factory.create(self.algo_name, base_name='run', config=self.config)  
+            agent = self.algo_factory.create(self.algo_name, base_name='run', config=self.config)
             if self.load_check_point and (self.load_path is not None):
-                agent.restore(self.load_path)
+                agent.restore(self.load_path, load_optimizer_state=self.load_optimizer_state)
             agent.train()
-            
+
     def create_player(self):
         return self.player_factory.create(self.algo_name, config=self.config)
 

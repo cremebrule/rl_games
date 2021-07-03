@@ -29,18 +29,18 @@ class BasePlayer(object):
 
     def get_weights(self):
         return self.variables.get_flat()
-    
+
     def set_weights(self, weights):
         return self.variables.set_flat(weights)
 
     def create_env(self):
         return env_configurations.configurations[self.env_name]['env_creator']()
 
-    def get_action(self, obs, is_determenistic = False):
+    def get_action(self, obs, is_deterministic = False):
         raise NotImplementedError('step')
-    
-    def get_masked_action(self, obs, mask, is_determenistic = False):
-        raise NotImplementedError('step') 
+
+    def get_masked_action(self, obs, mask, is_deterministic = False):
+        raise NotImplementedError('step')
 
     def reset(self):
         raise NotImplementedError('raise')
@@ -51,13 +51,13 @@ class BasePlayer(object):
         sum_steps = 0
         sum_game_res = 0
         n_games = n_games * n_game_life
-        
+
         has_masks = False
         has_masks_func = getattr(self.env, "has_action_mask", None) is not None
         if has_masks_func:
             has_masks = self.env.has_action_mask()
-        is_determenistic = True
-        
+        is_deterministic = True
+
         for _ in range(n_games):
             cr = 0
             steps = 0
@@ -66,9 +66,9 @@ class BasePlayer(object):
             for _ in range(5000):
                 if has_masks:
                     masks = self.env.get_action_mask()
-                    action = self.get_masked_action(s, masks, is_determenistic)
+                    action = self.get_masked_action(s, masks, is_deterministic)
                 else:
-                    action = self.get_action(s, is_determenistic)
+                    action = self.get_action(s, is_deterministic)
                 s, r, done, info =  self.env.step(action)
                 cr += r
                 steps += 1
@@ -93,15 +93,15 @@ class BasePlayer(object):
                     sum_steps += steps
                     break
 
-        print('av reward:', sum_rewards / n_games * n_game_life, 'av steps:', sum_steps / n_games * n_game_life, 'scores:', sum_game_res / n_games * n_game_life)        
-    
+        print('av reward:', sum_rewards / n_games * n_game_life, 'av steps:', sum_steps / n_games * n_game_life, 'scores:', sum_game_res / n_games * n_game_life)
+
 
 class PpoPlayerContinuous(BasePlayer):
     def __init__(self, sess, config):
         BasePlayer.__init__(self, sess, config)
         self.network = config['network']
         self.obs_ph = tf.placeholder('float32', (None, ) + self.obs_space.shape, name = 'obs')
-        self.actions_num = self.action_space.shape[0] 
+        self.actions_num = self.action_space.shape[0]
         self.actions_low = self.action_space.low
         self.actions_high = self.action_space.high
         self.mask = [False]
@@ -116,7 +116,7 @@ class PpoPlayerContinuous(BasePlayer):
         if self.normalize_input:
             self.moving_mean_std = MovingMeanStd(shape = self.obs_space.shape, epsilon = 1e-5, decay = 0.99)
             self.input_obs = self.moving_mean_std.normalize(self.input_obs, train=False)
-            
+
         self.run_dict = {
             'name' : 'agent',
             'inputs' : self.input_obs,
@@ -135,8 +135,8 @@ class PpoPlayerContinuous(BasePlayer):
         self.saver = tf.train.Saver()
         self.sess.run(tf.global_variables_initializer())
 
-    def get_action(self, obs, is_determenistic = True):
-        if is_determenistic:
+    def get_action(self, obs, is_deterministic = True):
+        if is_deterministic:
             ret_action = self.mu
         else:
             ret_action = self.action
@@ -166,7 +166,7 @@ class PpoPlayerDiscrete(BasePlayer):
         self.actions_num = self.action_space.n
         if self.use_action_masks:
             print('using masks for action')
-            self.action_mask_ph = tf.placeholder('int32', (None, self.actions_num), name = 'actions_mask')       
+            self.action_mask_ph = tf.placeholder('int32', (None, self.actions_num), name = 'actions_mask')
         else:
             self.action_mask_ph = None
         self.mask = [False] * self.num_agents
@@ -180,7 +180,7 @@ class PpoPlayerDiscrete(BasePlayer):
         if self.normalize_input:
             self.moving_mean_std = MovingMeanStd(shape = self.obs_space.shape, epsilon = 1e-5, decay = 0.99)
             self.input_obs = self.moving_mean_std.normalize(self.input_obs, train=False)
-            
+
         self.run_dict = {
             'name' : 'agent',
             'inputs' : self.input_obs,
@@ -202,7 +202,7 @@ class PpoPlayerDiscrete(BasePlayer):
         self.saver = tf.train.Saver()
         self.sess.run(tf.global_variables_initializer())
 
-    def get_action(self, obs, is_determenistic = True):
+    def get_action(self, obs, is_deterministic = True):
         ret_action = self.action
 
         if self.network.is_rnn():
@@ -210,20 +210,20 @@ class PpoPlayerDiscrete(BasePlayer):
         else:
             action, logits = self.sess.run([ret_action, self.logits], {self.obs_ph : obs})
 
-        if is_determenistic:
+        if is_deterministic:
             return np.argmax(logits, axis = -1).astype(np.int32)
         else:
             return int(np.squeeze(action))
 
-    def get_masked_action(self, obs, mask, is_determenistic = False):
-        #if is_determenistic:
+    def get_masked_action(self, obs, mask, is_deterministic = False):
+        #if is_deterministic:
         ret_action = self.action
 
         if self.network.is_rnn():
             action, self.last_state, logits = self.sess.run([ret_action, self.lstm_state, self.logits], {self.action_mask_ph : mask, self.obs_ph : obs, self.states_ph : self.last_state, self.masks_ph : self.mask})
         else:
             action, logits = self.sess.run([ret_action, self.logits], {self.action_mask_ph : mask, self.obs_ph : obs})
-        if is_determenistic:
+        if is_deterministic:
             logits = np.array(logits)
             return np.argmax(logits, axis = -1).astype(np.int32)
         else:
@@ -240,9 +240,9 @@ class PpoPlayerDiscrete(BasePlayer):
 class DQNPlayer(BasePlayer):
     def __init__(self, sess, config):
         BasePlayer.__init__(self, sess, config)
-        self.dqn = dqnagent.DQNAgent(sess, 'player', self.obs_space, self.action_space, config)  
+        self.dqn = dqnagent.DQNAgent(sess, 'player', self.obs_space, self.action_space, config)
 
-    def get_action(self, obs, is_determenistic = False):
+    def get_action(self, obs, is_deterministic = False):
         return self.dqn.get_action(np.squeeze(obs), 0.0)
 
     def restore(self, fn):

@@ -1,5 +1,5 @@
 params:
-  seed: 322    
+  seed: 322
   algo:
     name: a2c_discrete
 
@@ -13,7 +13,7 @@ params:
     name: actor_critic
     separate: False
     #normalization: 'layer_norm'
-    space: 
+    space:
       multi_discrete:
 
     mlp:
@@ -67,9 +67,9 @@ params:
       multi_discrete_space: True
     player:
         games_num: 100
-        is_determenistic: True
+        is_deterministic: True
 
-    central_value_config1: 
+    central_value_config1:
       minibatch_size: 512
       mini_epochs: 4
       lr: 5e-4

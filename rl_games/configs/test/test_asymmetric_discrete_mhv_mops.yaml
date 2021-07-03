@@ -1,4 +1,4 @@
-params:  
+params:
   algo:
     name: a2c_discrete
 
@@ -50,7 +50,7 @@ params:
       multi_head_value: False
     player:
         games_num: 100
-        determenistic: True
+        deterministic: True
 
     central_value_config:
       minibatch_size: 512
