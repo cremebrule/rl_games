@@ -239,6 +239,7 @@ class ExperienceBuffer:
         state_base_shape = (self.steps_num, self.num_actors)
 
         self.tensor_dict['obses'] = self._create_tensor_from_space(env_info['observation_space'], obs_base_shape)
+        self.tensor_dict['next_obses'] = self._create_tensor_from_space(env_info['observation_space'], obs_base_shape)
         if self.has_central_value:
             self.tensor_dict['states'] = self._create_tensor_from_space(env_info['state_space'], state_base_shape)
 
@@ -320,6 +321,8 @@ class ExperienceBuffer:
 
         return res_dict
 
-    def add_tensor(self, name, space):
-        base_shape = (self.steps_num, self.num_agents * self.num_actors)
+    def add_tensor(self, name, space, n_steps=None):
+        if n_steps is None:
+            n_steps = self.steps_num
+        base_shape = (n_steps, self.num_agents * self.num_actors)
         self.tensor_dict[name] = self._create_tensor_from_space(space, base_shape)
