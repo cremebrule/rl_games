@@ -42,7 +42,7 @@ class A2CBase:
     def __init__(self, base_name, config):
         self.config = config
         self.multi_gpu = config.get('multi_gpu', False)
-        self.rank = 0
+        self.rank = config.get('rank', 0)
         self.rank_size = 1
         if self.multi_gpu:
             from rl_games.distributed.hvd_wrapper import HorovodWrapper
@@ -897,7 +897,7 @@ class ContinuousA2CBase(A2CBase):
     def init_tensors(self):
         A2CBase.init_tensors(self)
         self.update_list = ['actions', 'neglogpacs', 'values', 'mus', 'sigmas']
-        self.tensor_list = self.update_list + ['obses', 'states', 'dones']
+        self.tensor_list = self.update_list + ['obses', 'next_obses', 'states', 'dones']
 
     def train_epoch(self):
         self.set_eval()

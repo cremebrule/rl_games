@@ -74,9 +74,9 @@ class A2CAgent(a2c_common.ContinuousA2CBase):
         state = self.get_full_state_weights()
         torch_ext.save_scheckpoint(fn, state)
 
-    def restore(self, fn, load_optimzer_state=False):
+    def restore(self, fn, load_optimizer_state=False):
         checkpoint = torch_ext.load_checkpoint(fn)
-        self.set_full_state_weights(checkpoint, load_optimizer_state=load_optimzer_state)
+        self.set_full_state_weights(checkpoint, load_optimizer_state=load_optimizer_state)
 
     def get_masked_action_values(self, obs, action_masks):
         assert False
