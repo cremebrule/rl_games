@@ -469,7 +469,7 @@ class A2CBase:
 
     def set_full_state_weights(self, weights, load_optimizer_state=False):
         self.set_weights(weights)
-        self.epoch_num = weights['epoch']
+        self.epoch_num = weights['epoch'] if load_optimizer_state else 0
         if self.has_central_value:
             self.central_value_net.load_state_dict(weights['assymetric_vf_nets'])
         if load_optimizer_state:
